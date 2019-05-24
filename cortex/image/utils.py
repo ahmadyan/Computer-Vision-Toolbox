@@ -9,6 +9,7 @@ from __future__ import print_function
 
 import cv2
 import numpy as np
+from PIL import Image
 
 
 def im2col(img, block_size, step=1):
@@ -57,11 +58,43 @@ def im2corners(image):
   return obj_corners
 
 
-def undistort_image(im, K, D):
+def iou(box1, box2):
+  """Computes Intersection over Union value for 2 bounding boxes.
+
+  Args:
+    box1: array of 4 values (top left and bottom right coords): [x0, y0, x1, x2]
+    box2: same as box1
+
+  Returns:
+    IoU
   """
-    Optionally: newcamera, roi = cv2.getOptimalNewCameraMatrix(self.K, self.D,
-    (W,H), 0)
-    """
-  H, W = im.shape[:2]
-  Kprime, roi = cv2.getOptimalNewCameraMatrix(K, D, (W, H), 1, (W, H))
-  return cv2.undistort(im, K, D, None, K)
+  b1_x0, b1_y0, b1_x1, b1_y1 = box1
+  b2_x0, b2_y0, b2_x1, b2_y1 = box2
+
+  int_x0 = max(b1_x0, b2_x0)
+  int_y0 = max(b1_y0, b2_y0)
+  int_x1 = min(b1_x1, b2_x1)
+  int_y1 = min(b1_y1, b2_y1)
+
+  int_area = (int_x1 - int_x0) * (int_y1 - int_y0)
+
+  b1_area = (b1_x1 - b1_x0) * (b1_y1 - b1_y0)
+  b2_area = (b2_x1 - b2_x0) * (b2_y1 - b2_y0)
+
+  # we add small epsilon of 1e-05 to avoid division by 0
+  iou = int_area / (b1_area + b2_area - int_area + 1e-05)
+  return iou
+
+
+def resize_image(image, size):
+    '''resize image with unchanged aspect ratio using padding'''
+    iw, ih = image.size
+    w, h = size
+    scale = min(w/iw, h/ih)
+    nw = int(iw*scale)
+    nh = int(ih*scale)
+
+    image = image.resize((nw,nh), Image.BICUBIC)
+    new_image = Image.new('RGB', size, (128,128,128))
+    new_image.paste(image, ((w-nw)//2, (h-nh)//2))
+    return new_image
