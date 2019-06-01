@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from geometry.multiview import homg
+from cortex.geometry.multiview import homg
 
 
 def estimate_fundamental_matrix(points1, points2, method=cv2.FM_RANSAC):
