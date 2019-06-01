@@ -98,3 +98,12 @@ def resize_image(image, size):
     new_image = Image.new('RGB', size, (128,128,128))
     new_image.paste(image, ((w-nw)//2, (h-nh)//2))
     return new_image
+
+
+def undistort_image(im, K, D):
+    """
+    Optionally: newcamera, roi = cv2.getOptimalNewCameraMatrix(self.K, self.D, (W,H), 0)
+    """
+    H, W = im.shape[:2]
+    Kprime, roi = cv2.getOptimalNewCameraMatrix(K, D, (W, H), 1, (W, H))
+    return cv2.undistort(im, K, D, None, K)
